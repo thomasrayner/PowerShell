@@ -2,15 +2,14 @@
 // Licensed under the MIT License.
 
 using System;
-using System.Collections.Generic;
 using System.Management.Automation;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Runtime.Serialization.Json;
-using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace Microsoft.PowerShell.Commands
 {
+    [Serializable]
     internal class CatFact
     {
         public string Fact { get; set; }
@@ -18,8 +17,15 @@ namespace Microsoft.PowerShell.Commands
 
         public CatFact (string Fact, int Length)
         {
-            this.Fact = Fact;
-            this.Length = Length;
+            if (Fact.Length != Length)
+            {
+                throw new ArgumentNullException("Fact wasn't the length specified");
+            }
+            else
+            {
+                this.Fact = Fact;
+                this.Length = Length;
+            }
         }
     }
     
@@ -30,17 +36,18 @@ namespace Microsoft.PowerShell.Commands
     [OutputType(typeof(CatFact))]
     public class GetCatFactCommand : PSCmdlet
     {
-        private static async Task<List<CatFact>> GetCatFact()
+        private static CatFact GetCatFact()
         {
             string factURL = "https://catfact.ninja/fact";
             HttpClient factClient = new HttpClient();
             factClient.DefaultRequestHeaders.Accept.Clear();
             factClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             factClient.DefaultRequestHeaders.Add("User-Agent", ".NET Foundation Repository Reporter");
+            var result = factClient.GetStringAsync(new Uri(factURL)).Result;
 
-            var catFactList = factClient.GetStringAsync(new Uri(factURL)).Result;
+            CatFact catFact = JsonConvert.DeserializeObject<CatFact>(result);
 
-            return catFactList;
+            return catFact;
         }
 
         /// <summary>
@@ -48,7 +55,7 @@ namespace Microsoft.PowerShell.Commands
         /// </summary>
         protected override void ProcessRecord() // aka the process{} block
         {
-            var catFactList = GetCatFact();
+            var catFactList = GetCatFact().Fact;
 
             WriteObject(catFactList, true);
         }
