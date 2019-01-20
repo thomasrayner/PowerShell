@@ -38,9 +38,7 @@ namespace Microsoft.PowerShell.Commands
             factClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             factClient.DefaultRequestHeaders.Add("User-Agent", ".NET Foundation Repository Reporter");
 
-            var serializer = new DataContractJsonSerializer(typeof(List<CatFact>));
-            var streamTask = factClient.GetStreamAsync(factURL);
-            var catFactList = serializer.ReadObject(await streamTask) as List<CatFact>;
+            var catFactList = factClient.GetStringAsync(new Uri(factURL)).Result;
 
             return catFactList;
         }
@@ -50,7 +48,7 @@ namespace Microsoft.PowerShell.Commands
         /// </summary>
         protected override void ProcessRecord() // aka the process{} block
         {
-            var catFactList = GetCatFact().Result;
+            var catFactList = GetCatFact();
 
             WriteObject(catFactList, true);
         }
