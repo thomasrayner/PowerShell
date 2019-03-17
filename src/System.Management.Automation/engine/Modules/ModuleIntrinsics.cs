@@ -228,7 +228,7 @@ namespace System.Management.Automation
                         scriptThis: AutomationNull.Value,
                         outputPipe: outputPipe,
                         invocationInfo: invocationInfo,
-                        args: arguments ?? Utils.EmptyArray<object>());
+                        args: arguments ?? Array.Empty<object>());
                 }
                 catch (ExitException ee)
                 {
@@ -879,7 +879,7 @@ namespace System.Management.Automation
             }
             catch (PSInvalidOperationException) { }
 
-            return Utils.EmptyArray<ExperimentalFeature>();
+            return Array.Empty<ExperimentalFeature>();
         }
 
         // The extensions of all of the files that can be processed with Import-Module, put the ni.dll in front of .dll to have higher priority to be loaded.
@@ -890,7 +890,9 @@ namespace System.Management.Automation
                             StringLiterals.PowerShellCmdletizationFileExtension,
                             StringLiterals.WorkflowFileExtension,
                             StringLiterals.PowerShellNgenAssemblyExtension,
-                            StringLiterals.PowerShellILAssemblyExtension};
+                            StringLiterals.PowerShellILAssemblyExtension,
+                            StringLiterals.PowerShellILExecutableExtension,
+                        };
 
         // A list of the extensions to check for implicit module loading and discovery, put the ni.dll in front of .dll to have higher priority to be loaded.
         internal static string[] PSModuleExtensions = new string[] {
@@ -899,7 +901,9 @@ namespace System.Management.Automation
                             StringLiterals.PowerShellCmdletizationFileExtension,
                             StringLiterals.WorkflowFileExtension,
                             StringLiterals.PowerShellNgenAssemblyExtension,
-                            StringLiterals.PowerShellILAssemblyExtension};
+                            StringLiterals.PowerShellILAssemblyExtension,
+                            StringLiterals.PowerShellILExecutableExtension,
+                        };
 
         /// <summary>
         /// Returns true if the extension is one of the module extensions...

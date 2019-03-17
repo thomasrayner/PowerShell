@@ -1113,7 +1113,6 @@ namespace System.Management.Automation
                             }
                         }
 
-                        // TODO: this causes AppVeyor builds to fail due to invalid XML being output
 #if !CORECLR
                         // Close the progress pane that may have popped up from analyzing UNC paths.
                         if (context.CurrentCommandProcessor != null)
@@ -1421,7 +1420,7 @@ namespace System.Management.Automation
             {
                 s_cachedPathExtCollection = pathExt != null
                     ? pathExt.Split(Utils.Separators.PathSeparator, StringSplitOptions.RemoveEmptyEntries)
-                    : Utils.EmptyArray<string>();
+                    : Array.Empty<string>();
                 s_cachedPathExtCollectionWithPs1 = new string[s_cachedPathExtCollection.Length + 1];
                 s_cachedPathExtCollectionWithPs1[0] = StringLiterals.PowerShellScriptFileExtension;
                 Array.Copy(s_cachedPathExtCollection, 0, s_cachedPathExtCollectionWithPs1, 1, s_cachedPathExtCollection.Length);

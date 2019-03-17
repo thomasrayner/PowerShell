@@ -477,7 +477,7 @@ namespace System.Management.Automation.Language
 
                 return BindingRestrictions.GetExpressionRestriction(
                     Expression.Block(
-                        new[] {tmp},
+                        new[] { tmp },
                         Expression.Assign(tmp, ExpressionCache.GetExecutionContextFromTLS),
                         test));
             }
@@ -585,7 +585,7 @@ namespace System.Management.Automation.Language
             if (target.Value == AutomationNull.Value)
             {
                 return new DynamicMetaObject(
-                    Expression.Call(Expression.Constant(Utils.EmptyArray<object>()), typeof(Array).GetMethod("GetEnumerator")),
+                    Expression.Call(Expression.Constant(Array.Empty<object>()), typeof(Array).GetMethod("GetEnumerator")),
                     BindingRestrictions.GetInstanceRestriction(target.Expression, AutomationNull.Value)).WriteToDebugLog(this);
             }
 
@@ -726,7 +726,7 @@ namespace System.Management.Automation.Language
         private static IEnumerator AutomationNullRule(CallSite site, object obj)
         {
             return obj == AutomationNull.Value
-                ? Utils.EmptyArray<object>().GetEnumerator()
+                ? Array.Empty<object>().GetEnumerator()
                 : ((CallSite<Func<CallSite, object, IEnumerator>>)site).Update(site, obj);
         }
 
@@ -805,7 +805,7 @@ namespace System.Management.Automation.Language
 
             if (target.Value == AutomationNull.Value)
             {
-                return new DynamicMetaObject(Expression.Constant(Utils.EmptyArray<object>()),
+                return new DynamicMetaObject(Expression.Constant(Array.Empty<object>()),
                     BindingRestrictions.GetInstanceRestriction(target.Expression, AutomationNull.Value)).WriteToDebugLog(this);
             }
 
@@ -874,7 +874,7 @@ namespace System.Management.Automation.Language
             var enumerable = PSEnumerableBinder.IsEnumerable(target);
             if (enumerable == null)
             {
-                var bindingResult = PSVariableAssignmentBinder.Get().Bind(target, Utils.EmptyArray<DynamicMetaObject>());
+                var bindingResult = PSVariableAssignmentBinder.Get().Bind(target, Array.Empty<DynamicMetaObject>());
                 var restrictions = target.LimitType.IsValueType
                     ? bindingResult.Restrictions
                     : target.PSGetTypeRestriction();
@@ -2587,7 +2587,11 @@ namespace System.Management.Automation.Language
                 toType = typeof(int);
             }
 
-            return Expression.Call(CachedReflectionInfo.Parser_ScanNumber, expr.Cast(typeof(string)), Expression.Constant(toType, typeof(Type)));
+            return Expression.Call(
+                CachedReflectionInfo.Parser_ScanNumber,
+                expr.Cast(typeof(string)),
+                Expression.Constant(toType, typeof(Type)),
+                Expression.Constant(true));
         }
 
         private static DynamicMetaObject GetArgAsNumericOrPrimitive(DynamicMetaObject arg, Type targetType)
@@ -3702,7 +3706,7 @@ namespace System.Management.Automation.Language
             }
 
             return errorSuggestion ?? target.ThrowRuntimeError(
-                Utils.EmptyArray<DynamicMetaObject>(),
+                Array.Empty<DynamicMetaObject>(),
                 BindingRestrictions.Empty,
                 "OperatorRequiresNumber",
                 ParserStrings.OperatorRequiresNumber,
@@ -7414,7 +7418,7 @@ namespace System.Management.Automation.Language
             //    ([pscustomobject]@{ foo = 'bar' }).Where({1})
             if (string.Equals(methodName, "Where", StringComparison.OrdinalIgnoreCase))
             {
-                var enumerator = (new object[] {obj}).GetEnumerator();
+                var enumerator = (new object[] { obj }).GetEnumerator();
                 switch (args.Length)
                 {
                     case 1:
@@ -7430,8 +7434,8 @@ namespace System.Management.Automation.Language
 
             if (string.Equals(methodName, "Foreach", StringComparison.OrdinalIgnoreCase))
             {
-                var enumerator = (new object[] {obj}).GetEnumerator();
-                return EnumerableOps.ForEach(enumerator, args[0], Utils.EmptyArray<object>());
+                var enumerator = (new object[] { obj }).GetEnumerator();
+                return EnumerableOps.ForEach(enumerator, args[0], Array.Empty<object>());
             }
 
             throw InterpreterError.NewInterpreterException(methodName, typeof(RuntimeException), null,

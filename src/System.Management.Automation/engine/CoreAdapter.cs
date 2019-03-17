@@ -1624,7 +1624,7 @@ namespace System.Management.Automation
             int parametersLength = parameters.Length;
             if (parametersLength == 0)
             {
-                return Utils.EmptyArray<object>();
+                return Array.Empty<object>();
             }
 
             object[] retValue = new object[parametersLength];
@@ -3793,7 +3793,7 @@ namespace System.Management.Automation
             FieldInfo field = adapterData.member as FieldInfo;
             if (adapterData.useReflection)
             {
-                return field.GetValue(property.baseObject);
+                return field?.GetValue(property.baseObject);
             }
             else
             {

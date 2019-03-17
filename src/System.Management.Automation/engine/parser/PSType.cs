@@ -19,7 +19,7 @@ namespace System.Management.Automation.Language
 
         private static int s_globalCounter = 0;
         private static readonly CustomAttributeBuilder s_hiddenCustomAttributeBuilder =
-            new CustomAttributeBuilder(typeof(HiddenAttribute).GetConstructor(Type.EmptyTypes), Utils.EmptyArray<object>());
+            new CustomAttributeBuilder(typeof(HiddenAttribute).GetConstructor(Type.EmptyTypes), Array.Empty<object>());
 
         private static readonly string s_sessionStateKeeperFieldName = "__sessionStateKeeper";
         internal static readonly string SessionStateFieldName = "__sessionState";
@@ -272,6 +272,7 @@ namespace System.Management.Automation.Language
             internal readonly TypeBuilder _staticHelpersTypeBuilder;
             private readonly Dictionary<string, PropertyMemberAst> _definedProperties;
             private readonly Dictionary<string, List<Tuple<FunctionMemberAst, Type[]>>> _definedMethods;
+            private HashSet<Tuple<string, Type>> _interfaceProperties;
             internal readonly List<(string fieldName, IParameterMetadataProvider bodyAst, bool isStatic)> _fieldsToInitForMemberFunctions;
             private bool _baseClassHasDefaultCtor;
 
@@ -442,15 +443,33 @@ namespace System.Management.Automation.Language
 
             private bool ShouldImplementProperty(string name, Type type)
             {
-                foreach (var interfaceType in _typeBuilder.GetInterfaces())
+                if (_interfaceProperties == null)
                 {
-                    if (interfaceType.GetProperty(name, type) != null)
+                    _interfaceProperties = new HashSet<Tuple<string, Type>>();
+                    var allInterfaces = new HashSet<Type>();
+
+                    // TypeBuilder.GetInterfaces() returns only the interfaces that was explicitly passed to its constructor.
+                    // During compilation the interface hierarchy is flattened, so we only need to resolve one level of ancestral interfaces.
+                    foreach (var interfaceType in _typeBuilder.GetInterfaces())
                     {
-                        return true;
+                        foreach (var parentInterface in interfaceType.GetInterfaces())
+                        {
+                            allInterfaces.Add(parentInterface);
+                        }
+
+                        allInterfaces.Add(interfaceType);
+                    }
+
+                    foreach (var interfaceType in allInterfaces)
+                    {
+                        foreach (var property in interfaceType.GetProperties())
+                        {
+                            _interfaceProperties.Add(Tuple.Create(property.Name, property.PropertyType));
+                        }
                     }
                 }
 
-                return false;
+                return _interfaceProperties.Contains(Tuple.Create(name, type));
             }
 
             public void DefineMembers()
@@ -746,7 +765,7 @@ namespace System.Management.Automation.Language
                 var parameters = ((IParameterMetadataProvider)functionMemberAst).Parameters;
                 if (parameters == null)
                 {
-                    return PSTypeExtensions.EmptyTypes;
+                    return Type.EmptyTypes;
                 }
 
                 bool anyErrors = false;
@@ -1260,7 +1279,7 @@ namespace System.Management.Automation.Language
         private static IEnumerable<CustomAttributeBuilder> GetAssemblyAttributeBuilders(string scriptFile)
         {
             var ctor = typeof(DynamicClassImplementationAssemblyAttribute).GetConstructor(Type.EmptyTypes);
-            var emptyArgs = Utils.EmptyArray<object>();
+            var emptyArgs = Array.Empty<object>();
 
             if (string.IsNullOrEmpty(scriptFile)) {
                 yield return new CustomAttributeBuilder(ctor, emptyArgs);
@@ -1272,7 +1291,7 @@ namespace System.Management.Automation.Language
             var propertyArgs = new object[] { scriptFile };
 
             yield return new CustomAttributeBuilder(ctor, emptyArgs,
-                propertyInfo, propertyArgs, Utils.EmptyArray<FieldInfo>(), emptyArgs);
+                propertyInfo, propertyArgs, Array.Empty<FieldInfo>(), emptyArgs);
 
         }
 

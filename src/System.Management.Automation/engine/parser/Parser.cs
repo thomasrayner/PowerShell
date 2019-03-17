@@ -88,7 +88,7 @@ namespace System.Management.Automation.Language
                 var emptyExtent = new EmptyScriptExtent();
                 var errorMsg = string.Format(CultureInfo.CurrentCulture, ParserStrings.FileReadError, e.Message);
                 errors = new[] { new ParseError(emptyExtent, "FileReadError", errorMsg) };
-                tokens = Utils.EmptyArray<Token>();
+                tokens = Array.Empty<Token>();
                 return new ScriptBlockAst(emptyExtent, null, new StatementBlockAst(emptyExtent, null, null), false);
             }
 
@@ -225,7 +225,7 @@ namespace System.Management.Automation.Language
         }
 
         // This helper routine is used from the runtime to convert a string to a number.
-        internal static object ScanNumber(string str, Type toType)
+        internal static object ScanNumber(string str, Type toType, bool shouldTryCoercion = true)
         {
             str = str.Trim();
             if (str.Length == 0)
@@ -249,11 +249,17 @@ namespace System.Management.Automation.Language
 
             if (token == null || !tokenizer.IsAtEndOfScript(token.Extent))
             {
-                // We call ConvertTo, primarily because we expect it will throw an exception,
-                // but it's possible it could succeed, e.g. if the string had commas, our lexer
-                // will fail, but Convert.ChangeType could succeed.
-
-                return LanguagePrimitives.ConvertTo(str, toType, CultureInfo.InvariantCulture);
+                if (shouldTryCoercion)
+                {
+                    // We call ConvertTo, primarily because we expect it will throw an exception,
+                    // but it's possible it could succeed, e.g. if the string had commas, our lexer
+                    // will fail, but Convert.ChangeType could succeed.
+                    return LanguagePrimitives.ConvertTo(str, toType, CultureInfo.InvariantCulture);
+                }
+                else
+                {
+                    throw new ParseException();
+                }
             }
 
             return token.Value;
@@ -1786,7 +1792,7 @@ namespace System.Management.Automation.Language
                         nameof(ParserStrings.MissingNamedStatementBlock),
                         ParserStrings.MissingNamedStatementBlock,
                         blockNameToken.Kind.Text());
-                    statementBlock = new StatementBlockAst(blockNameToken.Extent, Utils.EmptyArray<StatementAst>(), null);
+                    statementBlock = new StatementBlockAst(blockNameToken.Extent, Array.Empty<StatementAst>(), null);
                 }
                 else
                 {
@@ -4154,6 +4160,17 @@ namespace System.Management.Automation.Language
             // G  class-member-list:
             // G      class-member  new-lines:opt
             // G      class-member-list   class-member
+
+            // PowerShell classes are not supported in ConstrainedLanguage
+            if (Runspace.DefaultRunspace?.ExecutionContext?.LanguageMode == PSLanguageMode.ConstrainedLanguage)
+            {
+                ReportError(classToken.Extent,
+                            nameof(ParserStrings.ClassesNotAllowedInConstrainedLanguage),
+                            ParserStrings.ClassesNotAllowedInConstrainedLanguage,
+                            classToken.Kind.Text());
+
+                return null;
+            }
 
             SkipNewlines();
             Token classNameToken;

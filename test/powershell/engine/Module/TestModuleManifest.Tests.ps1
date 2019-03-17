@@ -54,7 +54,8 @@ Describe "Test-ModuleManifest tests" -tags "CI" {
 
     It "module manifest containing valid unprocessed rootmodule file type succeeds: <rootModuleValue>" -TestCases (
         @{rootModuleValue = "foo.psm1"},
-        @{rootModuleValue = "foo.dll"}
+        @{rootModuleValue = "foo.dll"},
+        @{rootModuleValue = "foo.exe"}
     ) {
 
         param($rootModuleValue)
@@ -64,6 +65,16 @@ Describe "Test-ModuleManifest tests" -tags "CI" {
         $moduleManifest = Test-ModuleManifest -Path $testModulePath -ErrorAction Stop
         $moduleManifest | Should -BeOfType System.Management.Automation.PSModuleInfo
         $moduleManifest.RootModule | Should -Be $rootModuleValue
+    }
+
+    It "module manifest containing valid rootmodule without specifying .psm1 extension succeeds" {
+
+        $rootModuleFileName = "bar.psm1";
+        New-Item -ItemType File -Path testdrive:/module/$rootModuleFileName > $null
+        New-ModuleManifest -Path $testModulePath -RootModule "bar"
+        $moduleManifest = Test-ModuleManifest -Path $testModulePath -ErrorAction Stop
+        $moduleManifest | Should -BeOfType System.Management.Automation.PSModuleInfo
+        $moduleManifest.RootModule | Should -Be "bar"
     }
 
     It "module manifest containing valid processed empty rootmodule file type fails: <rootModuleValue>" -TestCases (

@@ -57,8 +57,9 @@ namespace Microsoft.PowerShell.Commands
     /// to each element of the pipeline.
     /// </summary>
     [SuppressMessage("Microsoft.PowerShell", "PS1012:CallShouldProcessOnlyIfDeclaringSupport")]
-    [Cmdlet("ForEach", "Object", SupportsShouldProcess = true, DefaultParameterSetName = "ScriptBlockSet",
-        HelpUri = "https://go.microsoft.com/fwlink/?LinkID=113300", RemotingCapability = RemotingCapability.None)]
+    [Cmdlet("ForEach", "Object", SupportsShouldProcess = true, ConfirmImpact = ConfirmImpact.Low,
+        DefaultParameterSetName = "ScriptBlockSet", HelpUri = "https://go.microsoft.com/fwlink/?LinkID=113300",
+        RemotingCapability = RemotingCapability.None)]
     public sealed class ForEachObjectCommand : PSCmdlet
     {
         /// <summary>
@@ -268,7 +269,7 @@ namespace Microsoft.PowerShell.Commands
             if (_scripts[0] == null)
                 return;
 
-            var emptyArray = Utils.EmptyArray<object>();
+            var emptyArray = Array.Empty<object>();
             _scripts[0].InvokeUsingCmdlet(
                 contextCmdlet: this,
                 useLocalScope: false,
@@ -308,7 +309,7 @@ namespace Microsoft.PowerShell.Commands
                                 dollarUnder: InputObject,
                                 input: new object[] { InputObject },
                                 scriptThis: AutomationNull.Value,
-                                args: Utils.EmptyArray<object>());
+                                args: Array.Empty<object>());
                         }
                     }
 
@@ -433,7 +434,7 @@ namespace Microsoft.PowerShell.Commands
                                 {
                                     if (!BlockMethodInLanguageMode(InputObject))
                                     {
-                                        object result = targetMethod.Invoke(Utils.EmptyArray<object>());
+                                        object result = targetMethod.Invoke(Array.Empty<object>());
                                         WriteToPipelineWithUnrolling(result);
                                     }
                                 }
@@ -848,7 +849,7 @@ namespace Microsoft.PowerShell.Commands
             if (_endScript == null)
                 return;
 
-            var emptyArray = Utils.EmptyArray<object>();
+            var emptyArray = Array.Empty<object>();
             _endScript.InvokeUsingCmdlet(
                 contextCmdlet: this,
                 useLocalScope: false,
@@ -1633,7 +1634,7 @@ namespace Microsoft.PowerShell.Commands
                     dollarUnder: InputObject,
                     input: new object[] { _inputObject },
                     scriptThis: AutomationNull.Value,
-                    args: Utils.EmptyArray<object>());
+                    args: Array.Empty<object>());
 
                 if (_toBoolSite.Target.Invoke(_toBoolSite, result))
                 {

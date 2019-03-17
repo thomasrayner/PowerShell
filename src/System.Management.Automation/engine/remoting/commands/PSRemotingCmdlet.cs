@@ -70,7 +70,7 @@ namespace Microsoft.PowerShell.Commands
             }
             else if (computerNames.Length == 0)
             {
-                resolvedComputerNames = Utils.EmptyArray<string>();
+                resolvedComputerNames = Array.Empty<string>();
             }
             else
             {
@@ -781,7 +781,7 @@ namespace Microsoft.PowerShell.Commands
         /// </summary>
         [Parameter(ValueFromPipelineByPropertyName = true,
                    ParameterSetName = InvokeCommandCommand.SSHHostParameterSet)]
-        public string Subsystem { get; set; }
+        public virtual string Subsystem { get; set; }
 
         #endregion
 
@@ -3317,9 +3317,8 @@ namespace Microsoft.PowerShell.Commands
 
             try
             {
-                if (ShouldUseSteppablePipelineOnServer)
+                if (ShouldUseSteppablePipelineOnServer && pipeline is RemotePipeline rPipeline)
                 {
-                    RemotePipeline rPipeline = pipeline as RemotePipeline;
                     rPipeline.SetIsNested(true);
                     rPipeline.SetIsSteppable(true);
                 }
